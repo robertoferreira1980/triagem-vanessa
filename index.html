@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triagem — Dra. Vanessa Wendling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rose:#F0778B; --rose-l:#FDF2F4; --rose-m:#F7A1AD;
+  --dark:#4A3F41; --mid:#8C7C7E; --border:#F3E1E4; --white:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--white);font-family:'Montserrat',sans-serif;color:var(--dark);}
+::-webkit-scrollbar{width:0}
+
+/* PROGRESS */
+.progress-bar{width:100%;height:3px;background:var(--border);}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--rose-m),var(--rose));transition:width .6s cubic-bezier(.4,0,.2,1);}
+
+/* TELA BOAS-VINDAS */
+.welcome{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;text-align:center;}
+.logo{width:150px;margin-bottom:20px;object-fit:contain;}
+.brand-title{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:var(--rose);margin:0 0 6px;line-height:1.2;}
+.brand-sub{font-size:12px;color:var(--rose-m);letter-spacing:2px;text-transform:uppercase;font-weight:500;margin:0 0 28px;}
+.welcome-text{font-size:14px;color:var(--mid);line-height:1.7;margin:0 0 24px;max-width:360px;}
+.name-input{width:100%;max-width:380px;padding:17px;border-radius:12px;border:1.5px solid var(--border);font-size:15px;color:var(--dark);font-family:'Montserrat',sans-serif;outline:none;text-align:center;transition:border-color .3s;margin-bottom:16px;}
+.name-input:focus{border-color:var(--rose);}
+.btn-start{width:100%;max-width:380px;padding:17px;border-radius:12px;border:none;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .3s;}
+.btn-start.on{background:var(--rose);color:#fff;box-shadow:0 4px 15px rgba(240,119,139,.3);}
+.btn-start.off{background:var(--border);color:var(--mid);cursor:not-allowed;}
+.privacy{margin-top:22px;font-size:11px;color:var(--mid);font-style:italic;}
+
+/* QUESTIONÁRIO */
+.quiz-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding-bottom:60px;}
+.quiz-inner{width:100%;max-width:580px;}
+.quiz-header{padding:28px 24px 14px;text-align:center;display:flex;flex-direction:column;align-items:center;}
+.quiz-logo{height:68px;margin-bottom:10px;object-fit:contain;}
+.quiz-brand{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:var(--rose);margin-bottom:12px;}
+.step-label{font-size:12px;color:var(--rose);font-weight:600;display:flex;align-items:center;gap:6px;padding:0 24px;margin-bottom:4px;}
+.question-text{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:var(--dark);line-height:1.4;padding:18px 24px 6px;}
+.options-wrap{padding:12px 24px;display:flex;flex-direction:column;gap:9px;}
+.opt-btn{text-align:left;padding:13px 16px;border-radius:12px;border:1.5px solid var(--border);background:#fff;color:var(--mid);font-size:14px;font-weight:400;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;font-family:'Montserrat',sans-serif;width:100%;}
+.opt-btn.active{border-color:var(--rose);background:var(--rose-l);color:var(--dark);font-weight:500;}
+.opt-indicator{width:20px;height:20px;border-radius:50%;border:1.5px solid #D1C7C9;background:#fff;flex-shrink:0;transition:all .2s;}
+.opt-indicator.circle.active{border:6px solid var(--rose);}
+.opt-indicator.check{border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--rose);}
+.opt-indicator.check.active{border-color:var(--rose);background:var(--rose-l);}
+.text-area{width:100%;padding:15px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;color:var(--dark);background:#fff;outline:none;resize:none;font-family:'Montserrat',sans-serif;line-height:1.6;transition:border-color .3s;}
+.text-area:focus{border-color:var(--rose);}
+.nav-btns{padding:18px 24px;display:flex;gap:14px;}
+.btn-back{flex:1;padding:15px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--mid);font-size:13px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif;}
+.btn-next{flex:2;padding:15px;border-radius:12px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .3s;font-family:'Montserrat',sans-serif;}
+.btn-next.on{background:var(--rose);color:#fff;}
+.btn-next.off{background:var(--border);color:var(--mid);cursor:not-allowed;}
+
+/* LOADING / SUCCESS */
+.fullscreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;padding:32px;text-align:center;}
+.loading-logo{height:88px;margin-bottom:24px;opacity:.7;}
+.loading-text{font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--dark);}
+.loading-sub{font-size:13px;color:var(--mid);margin-top:8px;font-style:italic;}
+@keyframes pulse-img{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+.pulse{animation:pulse-img 2s infinite;}
+.success-check{width:68px;height:68px;border-radius:50%;background:var(--rose-l);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 22px;color:var(--rose);}
+.success-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--dark);margin-bottom:12px;}
+.success-text{color:var(--mid);font-size:14px;line-height:1.6;max-width:300px;margin:0 auto;}
+</style>
+</head>
+<body>
+
+<!-- ══ BOAS-VINDAS ══════════════════════════════════════ -->
+<div id="view-welcome" class="welcome">
+  <img src="logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+  <h1 class="brand-title">Dra. Vanessa Wendling</h1>
+  <p class="brand-sub">Ginecologia e Obstetrícia</p>
+  <p class="welcome-text">
+    Para que possamos oferecer um atendimento personalizado e focado nas suas necessidades, responda este breve questionário antes da consulta.
+  </p>
+  <input type="text" id="nome-input" class="name-input" placeholder="Digite seu nome completo"
+    oninput="checkName()" onkeydown="if(event.key==='Enter')tryStart()">
+  <button id="btn-start" class="btn-start off" onclick="tryStart()" disabled>Iniciar Triagem</button>
+  <p class="privacy">* Suas respostas são enviadas de forma totalmente sigilosa.</p>
+</div>
+
+<!-- ══ QUESTIONÁRIO ══════════════════════════════════════ -->
+<div id="view-quiz" style="display:none" class="quiz-wrap">
+  <div class="quiz-inner">
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <div class="quiz-header">
+      <img src="logo.png" alt="Logo" class="quiz-logo" onerror="this.style.display='none'">
+      <div class="quiz-brand">Dra. Vanessa Wendling</div>
+    </div>
+    <div id="step-label" class="step-label"></div>
+    <div id="question-text" class="question-text"></div>
+    <div id="options-area" class="options-wrap"></div>
+    <div class="nav-btns">
+      <button id="btn-back" class="btn-back" onclick="goBack()" style="display:none">Voltar</button>
+      <button id="btn-next" class="btn-next off" onclick="goNext()" disabled>Próxima</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOADING ════════════════════════════════════════════ -->
+<div id="view-loading" style="display:none" class="fullscreen">
+  <img src="logo.png" alt="Carregando" class="loading-logo pulse" onerror="this.style.display='none'">
+  <p class="loading-text" id="loading-text">Analisando suas respostas...</p>
+  <p class="loading-sub" id="loading-sub">Isso leva apenas alguns segundos</p>
+</div>
+
+<!-- ══ SUCESSO ════════════════════════════════════════════ -->
+<div id="view-success" style="display:none" class="fullscreen">
+  <img src="logo.png" alt="Logo" style="width:100%;max-width:160px;margin-bottom:36px" onerror="this.style.display='none'">
+  <div class="success-check">✓</div>
+  <h2 class="success-title">Questionário Finalizado</h2>
+  <p class="success-text">
+    Suas informações foram enviadas com segurança.<br>
+    Por favor, aguarde na recepção — a Dra. Vanessa irá chamá-la em breve.
+  </p>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// ⚙️  CONFIGURAÇÃO — edite apenas aqui
+// ═══════════════════════════════════════════════════════
+
+// Webhook do Make.com que grava na planilha Google Sheets
+var WEBHOOK_PLANILHA = "https://hook.us2.make.com/qmkgv9y62v7yjvfp5aismuiamamtqq2l";
+
+// Chave da API do Google Gemini (aistudio.google.com → Get API Key)
+var GEMINI_KEY = "AIzaSyA6x9umo9WoYz5PvWwKiLm9N0IBCRTTeXw"; // ← cole sua chave AIza... aqui
+
+// ═══════════════════════════════════════════════════════
+// PERGUNTAS DO QUESTIONÁRIO
+// ═══════════════════════════════════════════════════════
+var STEPS = [
+  { id:"perfil", title:"Seu Perfil", icon:"👤", questions:[
+    { id:"idade", label:"Qual é a sua faixa etária?", type:"single",
+      options:["Menos de 18 anos","18 – 25 anos","26 – 35 anos","36 – 45 anos","46 – 55 anos","56 – 65 anos","Acima de 65 anos"] },
+    { id:"status_reprodutivo", label:"Qual é o seu status reprodutivo atual?", type:"single",
+      options:["Nunca engravidei","Tentando engravidar","Gestante","Pós-parto (menos de 1 ano)","Pós-parto (mais de 1 ano)","Pós-menopausa","Histerectomia prévia"] }
+  ]},
+  { id:"menstrual", title:"Ciclo Menstrual", icon:"🌸", questions:[
+    { id:"ultimo_preventivo", label:"Quando foi seu último exame preventivo (Papanicolau)?", type:"single",
+      options:["Menos de 1 ano atrás","Entre 1 e 3 anos atrás","Mais de 3 anos atrás","Nunca realizei","Não se aplica (sem útero)"] },
+    { id:"ciclo", label:"Como é o seu ciclo menstrual atualmente?", type:"single",
+      options:["Regular e sem queixas","Irregular (ciclos variáveis)","Fluxo muito intenso ou com cólicas fortes","Fluxo muito escasso","Ausente (amenorreia)","Em uso de hormônios / anticoncepcional"] },
+    { id:"sangramento_irregular", label:"Você tem sangramento fora do período menstrual ou após relações sexuais?", type:"single",
+      options:["Não","Às vezes","Sim, com frequência"] }
+  ]},
+  { id:"sexual", title:"Saúde Sexual", icon:"🤍", questions:[
+    { id:"contraceptivo", label:"Você utiliza algum método contraceptivo?", type:"single",
+      options:["Sim, pílula oral","Sim, DIU (cobre ou hormonal)","Sim, injeção hormonal","Sim, implante subdérmico","Sim, preservativo","Não utilizo","Estou planejando iniciar"] },
+    { id:"dor_relacao", label:"Você sente dor durante as relações sexuais?", type:"single",
+      options:["Não","Às vezes, leve","Com frequência, moderada","Sempre ou intensa","Não tenho vida sexual ativa no momento"] },
+    { id:"libido", label:"Como você avalia seu desejo sexual atualmente?", type:"single",
+      options:["Satisfatório","Diminuído em relação ao que era antes","Muito baixo / ausente","Aumentado"] }
+  ]},
+  { id:"menopausa", title:"Climatério & Menopausa", icon:"🌿", questions:[
+    { id:"fogachos", label:"Você tem ondas de calor (fogachos) ou sudorese noturna?", type:"single",
+      options:["Não","Raramente / leve","Com frequência / moderado","Intenso, afeta minha qualidade de vida"] },
+    { id:"ressecamento", label:"Você percebe ressecamento vaginal ou desconforto na região íntima?", type:"single",
+      options:["Não","Leve, ocasional","Moderado","Intenso, interfere na vida diária"] },
+    { id:"humor_sono", label:"Você tem alterações de humor, ansiedade ou dificuldades para dormir?", type:"multi",
+      options:["Irritabilidade ou mudanças de humor","Ansiedade ou nervosismo","Insônia ou sono ruim","Tristeza ou desânimo","Nenhum desses sintomas"] }
+  ]},
+  { id:"pelvico", title:"Assoalho Pélvico & Estética", icon:"✨", questions:[
+    { id:"incontinencia", label:"Você tem perda involuntária de urina (ao tossir, espirrar, treinar)?", type:"single",
+      options:["Não","Raramente, gotejamento mínimo","Às vezes, perda moderada","Com frequência, perda significativa"] },
+    { id:"peso_pelvico", label:"Sente sensação de peso ou pressão no \"pé da barriga\" (pelve)?", type:"single",
+      options:["Nunca senti","Às vezes, leve","Frequente ou incomoda bastante"] },
+    { id:"frouxidao", label:"Sente frouxidão vaginal ou entrada de ar durante a relação sexual?", type:"single",
+      options:["Não sinto nenhuma alteração","Sinto um pouco","Sinto muita frouxidão"] },
+    { id:"estetica_intima", label:"Você tem interesse em procedimentos de estética íntima ou rejuvenescimento?", type:"single",
+      options:["Tenho curiosidade, mas não sei o que existe","Sim, já pesquisei sobre o assunto","Sim, é um dos motivos da minha consulta","Não tenho interesse no momento"] },
+    { id:"queixas_esteticas", label:"Você tem alguma dessas queixas estéticas ou funcionais?", type:"multi",
+      options:["Lábios maiores/menores com aparência que me incomoda","Escurecimento da pele da região íntima","Incômodo ao usar roupas justas","Frouxidão vaginal ou redução da sensibilidade","Nenhuma dessas"] }
+  ]},
+  { id:"motivo", title:"Motivo da Consulta", icon:"📋", questions:[
+    { id:"motivo_consulta", label:"Qual é o principal motivo da sua consulta hoje? (pode selecionar mais de um)", type:"multi",
+      options:["Rotina / check-up ginecológico","Dúvidas sobre contracepção","Desejo de engravidar","Sintomas menopáusicos","Dor ou desconforto íntimo","Estética íntima","Incontinência urinária","Sangramento irregular","Outro motivo"] },
+    { id:"observacao", label:"Há algo mais que você gostaria de nos contar antes de entrar na sala?", type:"text",
+      placeholder:"Sinta-se à vontade para escrever aqui..." }
+  ]}
+];
+
+// Flatten de todas as perguntas
+var ALL_Q = [];
+STEPS.forEach(function(s){ s.questions.forEach(function(q){ ALL_Q.push({step:s,q:q}); }); });
+var TOTAL = ALL_Q.length;
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+var nome = "";
+var answers = {};
+var cursor = 0; // índice em ALL_Q
+
+// ═══════════════════════════════════════════════════════
+// TELA BOAS-VINDAS
+// ═══════════════════════════════════════════════════════
+function checkName(){
+  var v = document.getElementById("nome-input").value.trim();
+  var btn = document.getElementById("btn-start");
+  if(v.length >= 3){
+    btn.className = "btn-start on"; btn.disabled = false;
+  } else {
+    btn.className = "btn-start off"; btn.disabled = true;
+  }
+}
+function tryStart(){
+  var v = document.getElementById("nome-input").value.trim();
+  if(v.length < 3) return;
+  nome = v;
+  showView("quiz");
+  renderQuestion();
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER PERGUNTA
+// ═══════════════════════════════════════════════════════
+function renderQuestion(){
+  var item = ALL_Q[cursor];
+  var step = item.step;
+  var q    = item.q;
+
+  // Progress
+  document.getElementById("progress").style.width = ((cursor+1)/TOTAL*100)+"%";
+
+  // Label
+  document.getElementById("step-label").innerHTML =
+    "<span>"+step.icon+"</span> "+step.title;
+
+  // Texto
+  document.getElementById("question-text").textContent = q.label;
+
+  // Botão voltar
+  document.getElementById("btn-back").style.display = cursor > 0 ? "block" : "none";
+
+  // Área de opções
+  var area = document.getElementById("options-area");
+  area.innerHTML = "";
+
+  if(q.type === "text"){
+    var ta = document.createElement("textarea");
+    ta.className = "text-area";
+    ta.rows = 4;
+    ta.placeholder = q.placeholder || "";
+    ta.value = answers[q.id] || "";
+    ta.oninput = function(){ answers[q.id] = ta.value; updateNext(); };
+    area.appendChild(ta);
+
+  } else {
+    var isMulti = q.type === "multi";
+    var current = answers[q.id];
+    var selected = Array.isArray(current) ? current : (current ? [current] : []);
+
+    q.options.forEach(function(opt){
+      var isActive = isMulti ? selected.indexOf(opt) > -1 : current === opt;
+      var btn = document.createElement("button");
+      btn.className = "opt-btn" + (isActive ? " active" : "");
+
+      var ind = document.createElement("div");
+      ind.className = "opt-indicator " + (isMulti ? "check" : "circle") + (isActive ? " active" : "");
+      if(isMulti && isActive) ind.textContent = "✓";
+
+      var lbl = document.createElement("span");
+      lbl.textContent = opt;
+
+      btn.appendChild(ind);
+      btn.appendChild(lbl);
+
+      btn.onclick = function(){
+        if(isMulti){
+          var none = ["Nenhum desses sintomas","Nenhuma dessas"];
+          if(none.indexOf(opt) > -1){
+            answers[q.id] = [opt];
+          } else {
+            var prev = Array.isArray(answers[q.id]) ? answers[q.id].filter(function(x){ return none.indexOf(x) === -1; }) : [];
+            var idx = prev.indexOf(opt);
+            if(idx > -1) prev.splice(idx,1); else prev.push(opt);
+            answers[q.id] = prev;
+          }
+        } else {
+          answers[q.id] = opt;
+        }
+        renderQuestion();
+      };
+
+      area.appendChild(btn);
+    });
+  }
+
+  updateNext();
+}
+
+function updateNext(){
+  var q = ALL_Q[cursor].q;
+  var val = answers[q.id];
+  var ok = q.type === "text" ? true
+         : q.type === "multi" ? (Array.isArray(val) && val.length > 0)
+         : !!val;
+  var btn = document.getElementById("btn-next");
+  var isLast = cursor === TOTAL - 1;
+  btn.textContent = isLast ? "Enviar Respostas" : "Próxima";
+  btn.className   = "btn-next " + (ok ? "on" : "off");
+  btn.disabled    = !ok;
+}
+
+function goBack(){
+  if(cursor > 0){ cursor--; renderQuestion(); }
+}
+function goNext(){
+  var q = ALL_Q[cursor].q;
+  var val = answers[q.id];
+  var ok = q.type === "text" ? true
+         : q.type === "multi" ? (Array.isArray(val) && val.length > 0)
+         : !!val;
+  if(!ok) return;
+  if(cursor < TOTAL - 1){
+    cursor++;
+    renderQuestion();
+  } else {
+    submitAll();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// ENVIO: GEMINI → PLANILHA
+// ═══════════════════════════════════════════════════════
+async function submitAll(){
+  showView("loading");
+  setLoading("Analisando suas respostas com IA...", "Isso leva apenas alguns segundos");
+
+  // Monta payload base (respostas da paciente)
+  var payload = { nome_paciente: nome };
+  ALL_Q.forEach(function(item){
+    var val = answers[item.q.id];
+    payload[item.q.id] = Array.isArray(val) ? val.join(", ") : (val || "");
+  });
+
+  // ── 1. ANÁLISE GEMINI ──────────────────────────────
+  var geminiResult = { resumo:"", alertas:"", procedimentos:"" };
+
+  if(GEMINI_KEY.trim()){
+    try{
+      geminiResult = await analisarComGemini(payload);
+      setLoading("Salvando na planilha...", "Quase pronto!");
+    } catch(e){
+      console.warn("Gemini falhou:", e.message);
+      // continua sem análise se a IA falhar — não bloqueia o envio
+    }
+  }
+
+  // ── 2. MONTA PAYLOAD COMPLETO (respostas + análise) ─
+  var payloadFinal = Object.assign({}, payload, {
+    "Resumoi_Clínico_gemini":        geminiResult.resumo,
+    "Alertas_imediatos_gemini":      geminiResult.alertas,
+    "Procedimentos_sugeridos_gemini":geminiResult.procedimentos,
+    "Data_Hora": new Date().toLocaleString("pt-BR")
+  });
+
+  // ── 3. ENVIA PARA A PLANILHA VIA WEBHOOK ────────────
+  try{
+    await fetch(WEBHOOK_PLANILHA, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payloadFinal)
+    });
+  } catch(e){
+    console.error("Erro ao salvar na planilha:", e.message);
+    // mostra sucesso mesmo assim (dados podem ter chegado)
+  }
+
+  showView("success");
+}
+
+// ── CHAMADA AO GEMINI ────────────────────────────────
+async function analisarComGemini(dados){
+  var linhas = [
+    "Faixa etária: "+dados.idade,
+    "Status reprodutivo: "+dados.status_reprodutivo,
+    "Último preventivo: "+dados.ultimo_preventivo,
+    "Ciclo menstrual: "+dados.ciclo,
+    "Sangramento irregular: "+dados.sangramento_irregular,
+    "Contraceptivo: "+dados.contraceptivo,
+    "Dor na relação: "+dados.dor_relacao,
+    "Desejo sexual: "+dados.libido,
+    "Fogachos: "+dados.fogachos,
+    "Ressecamento vaginal: "+dados.ressecamento,
+    "Humor / sono: "+dados.humor_sono,
+    "Perda de urina: "+dados.incontinencia,
+    "Peso pélvico: "+dados.peso_pelvico,
+    "Frouxidão: "+dados.frouxidao,
+    "Estética íntima: "+dados.estetica_intima,
+    "Queixas estéticas: "+dados.queixas_esteticas,
+    "Motivo da consulta: "+dados.motivo_consulta,
+    "Observações da paciente: "+dados.observacao
+  ].join("\n");
+
+  var prompt =
+    "Você é assistente clínica da Dra. Vanessa Wendling, ginecologista especializada em saúde feminina integral.\n\n"
+    +"Analise as respostas desta triagem e gere um resumo clínico em português, objetivo e diretamente útil para a médica durante a consulta.\n\n"
+    +"RESPOSTAS DA TRIAGEM:\n"+linhas+"\n\n"
+    +"Responda SOMENTE em JSON puro (sem markdown, sem texto fora do JSON), neste formato exato:\n"
+    +'{\n'
+    +'  "resumo": "Parágrafo de 3-4 linhas com o perfil clínico completo da paciente, contextualizando os achados mais relevantes.",\n'
+    +'  "alertas": "Lista dos alertas clínicos separados por ponto e vírgula. Inclua apenas achados que merecem atenção.",\n'
+    +'  "procedimentos": "[{\\"nome\\":\\"Nome do procedimento\\",\\"prioridade\\":\\"Alta|Média|Baixa\\",\\"justificativa\\":\\"Motivo clínico\\"}]"\n'
+    +'}';
+
+  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="+encodeURIComponent(GEMINI_KEY.trim());
+
+  var res = await fetch(url, {
+    method:"POST", mode:"cors",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      contents:[{role:"user", parts:[{text:prompt}]}],
+      generationConfig:{temperature:0.2, maxOutputTokens:1200, responseMimeType:"application/json"}
+    })
+  });
+
+  var raw = await res.text();
+  var data;
+  try{ data = JSON.parse(raw); } catch(e){ throw new Error("Resposta inválida da API Gemini"); }
+  if(data.error) throw new Error("Gemini API: "+( data.error.message||JSON.stringify(data.error)));
+
+  var text = "";
+  try{ text = data.candidates[0].content.parts[0].text; } catch(e){ throw new Error("Gemini sem conteúdo"); }
+
+  // Parse do JSON retornado
+  var parsed;
+  try{ parsed = JSON.parse(text); }
+  catch(e){
+    var m = text.match(/\{[\s\S]*\}/);
+    if(!m) throw new Error("Gemini não retornou JSON válido");
+    parsed = JSON.parse(m[0]);
+  }
+
+  return {
+    resumo:        parsed.resumo        || "",
+    alertas:       parsed.alertas       || "",
+    procedimentos: typeof parsed.procedimentos === "string"
+                     ? parsed.procedimentos
+                     : JSON.stringify(parsed.procedimentos || [])
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// HELPERS DE TELA
+// ═══════════════════════════════════════════════════════
+function showView(v){
+  ["welcome","quiz","loading","success"].forEach(function(id){
+    document.getElementById("view-"+id).style.display = id===v ? "flex" : "none";
+  });
+  if(v==="quiz") document.getElementById("view-quiz").style.display="flex";
+}
+
+function setLoading(title, sub){
+  document.getElementById("loading-text").textContent = title;
+  document.getElementById("loading-sub").textContent  = sub;
+}
+</script>
+</body>
+</html>
