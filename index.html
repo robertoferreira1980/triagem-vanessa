@@ -112,32 +112,15 @@ body{background:var(--white);font-family:'Montserrat',sans-serif;color:var(--dar
 
 <script>
 // ╔══════════════════════════════════════════════════════════╗
-// ║              ⚙️  CONFIGURAÇÃO — edite aqui              ║
+// ║              ⚙️  CONFIGURAÇÃO — EDITE AQUI              ║
 // ╠══════════════════════════════════════════════════════════╣
-// ║                                                          ║
-// ║  1. Cole o ID da sua planilha Google Sheets              ║
-// ║     (está na URL: /spreadsheets/d/ ESTE_TRECHO /edit)    ║
-var SHEET_ID = "";
-// ║                                                          ║
-// ║  2. Nome exato da aba (guia) da planilha                 ║
-var SHEET_NAME = "Triagem";
-// ║                                                          ║
-// ║  3. Chave da API Google (com Sheets API ativada)         ║
-// ║     console.cloud.google.com → APIs → Sheets API →       ║
-// ║     Credenciais → Criar chave de API                     ║
-var SHEETS_API_KEY = "";
-// ║                                                          ║
-// ║  4. Chave da API Gemini (aistudio.google.com)            ║
-var GEMINI_KEY = "AIzaSyA6x9umo9WoYz5PvWwKiLm9N0IBCRTTeXw";
-// ║                                                          ║
+// Cole a URL obtida após fazer a "Nova Implantação" do seu Apps Script:
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNYQ25rS2JjS8H8gVCIsxAT0G17eQ1o_vC4hV79XmdgLm08MHuDm5nneXeBFSnbNud/exec";
 // ╚══════════════════════════════════════════════════════════╝
 
-// IMPORTANTE: A Sheets API com chave simples só permite LEITURA
-// Para ESCRITA sem servidor, use Google Apps Script (veja instruções abaixo)
-// A variável abaixo é a URL do seu Apps Script Web App:
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNYQ25rS2JjS8H8gVCIsxAT0G17eQ1o_vC4hV79XmdgLm08MHuDm5nneXeBFSnbNud/exec";
+// NOTA DE SEGURANÇA: As variáveis GEMINI_KEY e chaves diretas foram totalmente
+// removidas do frontend para evitar clonagem e bloqueios automáticos do Google por leak.
 
-// ── PERGUNTAS ──────────────────────────────────────────────
 var STEPS = [
   { id:"perfil", title:"Seu Perfil", icon:"👤", questions:[
     { id:"idade", label:"Qual é a sua faixa etária?", type:"single",
@@ -172,7 +155,7 @@ var STEPS = [
   { id:"pelvico", title:"Assoalho Pélvico & Estética", icon:"✨", questions:[
     { id:"incontinencia", label:"Você tem perda involuntária de urina (ao tossir, espirrar, treinar)?", type:"single",
       options:["Não","Raramente, gotejamento mínimo","Às vezes, perda moderada","Com frequência, perda significativa"] },
-    { id:"peso_pelvico", label:"Sente sensação de peso ou pressão no \"pé da barriga\" (pelve)?", type:"single",
+    { id:"peso_pelvico", label:"Sente sensação de peso ou pressão no "pé da barriga" (pelve)?", type:"single",
       options:["Nunca senti","Às vezes, leve","Frequente ou incomoda bastante"] },
     { id:"frouxidao", label:"Sente frouxidão vaginal ou entrada de ar durante a relação sexual?", type:"single",
       options:["Não sinto nenhuma alteração","Sinto um pouco","Sinto muita frouxidão"] },
@@ -193,15 +176,6 @@ var STEPS = [
 var ALL_Q = [];
 STEPS.forEach(function(s){ s.questions.forEach(function(q){ ALL_Q.push({step:s,q:q}); }); });
 var TOTAL = ALL_Q.length;
-
-// Ordem das colunas na planilha (deve bater com o cabeçalho)
-var COLUNAS = [
-  "Data_Hora","nome_paciente","idade","status_reprodutivo","ultimo_preventivo",
-  "ciclo","sangramento_irregular","contraceptivo","dor_relacao","libido",
-  "fogachos","ressecamento","humor_sono","incontinencia","peso_pelvico",
-  "frouxidao","estetica_intima","queixas_esteticas","motivo_consulta","observacao",
-  "Resumo_Clinico_gemini","Alertas_imediatos_gemini","Procedimentos_sugeridos_gemini"
-];
 
 // ── STATE ──────────────────────────────────────────────────
 var nome = "";
@@ -300,142 +274,35 @@ function goNext(){
 // ── ENVIO PRINCIPAL ────────────────────────────────────────
 async function submitAll(){
   showView("loading");
-  setLoad("Analisando suas respostas com IA...", "Aguarde alguns segundos");
+  setLoad("Enviando triagem e gerando análise com IA...", "Aguarde alguns segundos");
 
-  // Monta objeto com todas as respostas
+  // Monta objeto com todas as respostas estruturadas em chaves nativas
   var dados = { nome_paciente: nome };
   ALL_Q.forEach(function(item){
     var v = answers[item.q.id];
     dados[item.q.id] = Array.isArray(v) ? v.join(", ") : (v || "");
   });
 
-  // 1. Análise com Gemini
-  var ia = { resumo:"", alertas:"", procedimentos:"" };
-  if(GEMINI_KEY && GEMINI_KEY.indexOf("COLE") === -1){
-    try{
-      setLoad("Gerando análise clínica...", "Quase pronto!");
-      ia = await chamarGemini(dados);
-    } catch(e){ console.warn("Gemini falhou, continuando sem análise:", e.message); }
-  }
-
-  // 2. Monta a linha para a planilha (na ordem exata das colunas)
-  var agora = new Date().toLocaleString("pt-BR");
-  var linhaObj = {
-    Data_Hora: agora,
-    nome_paciente: dados.nome_paciente,
-    idade: dados.idade,
-    status_reprodutivo: dados.status_reprodutivo,
-    ultimo_preventivo: dados.ultimo_preventivo,
-    ciclo: dados.ciclo,
-    sangramento_irregular: dados.sangramento_irregular,
-    contraceptivo: dados.contraceptivo,
-    dor_relacao: dados.dor_relacao,
-    libido: dados.libido,
-    fogachos: dados.fogachos,
-    ressecamento: dados.ressecamento,
-    humor_sono: dados.humor_sono,
-    incontinencia: dados.incontinencia,
-    peso_pelvico: dados.peso_pelvico,
-    frouxidao: dados.frouxidao,
-    estetica_intima: dados.estetica_intima,
-    queixas_esteticas: dados.queixas_esteticas,
-    motivo_consulta: dados.motivo_consulta,
-    observacao: dados.observacao,
-    "Resumo_Clinico_gemini": ia.resumo,
-    "Alertas_imediatos_gemini": ia.alertas,
-    "Procedimentos_sugeridos_gemini": ia.procedimentos
-  };
-
-  // Array de valores na ordem das colunas
-  var valores = COLUNAS.map(function(c){ return linhaObj[c] || ""; });
-
-  // 3. Grava na planilha via Google Apps Script
-  setLoad("Salvando na planilha...", "");
+  // Envia os dados crus diretamente para o Apps Script
+  // O processamento do Gemini agora ocorre no backend seguro do Google
   try{
-    await gravarNaPlanilha(valores);
-  } catch(e){ console.error("Erro ao gravar:", e.message); }
+    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("COLE") > -1){
+      console.warn("URL do Apps Script não configurada.");
+      showView("success");
+      return;
+    }
+
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors", // Mantido conforme arquitetura original para evitar bloqueios cross-origin
+      headers: {"Content-Type":"text/plain"},
+      body: JSON.stringify(dados)
+    });
+  } catch(e){ 
+    console.error("Erro ao enviar dados para o Apps Script:", e.message); 
+  }
 
   showView("success");
-}
-
-// ── GEMINI ─────────────────────────────────────────────────
-async function chamarGemini(d){
-  var prompt =
-    "Você é assistente clínica da Dra. Vanessa Wendling, ginecologista especializada em saúde feminina.\n\n"
-   +"Analise as respostas da triagem abaixo e gere um resumo clínico objetivo em português, útil para a médica durante a consulta.\n\n"
-   +"DADOS DA PACIENTE:\n"
-   +"Faixa etária: "+d.idade+"\n"
-   +"Status reprodutivo: "+d.status_reprodutivo+"\n"
-   +"Último preventivo: "+d.ultimo_preventivo+"\n"
-   +"Ciclo menstrual: "+d.ciclo+"\n"
-   +"Sangramento irregular: "+d.sangramento_irregular+"\n"
-   +"Contraceptivo: "+d.contraceptivo+"\n"
-   +"Dor na relação: "+d.dor_relacao+"\n"
-   +"Desejo sexual: "+d.libido+"\n"
-   +"Fogachos: "+d.fogachos+"\n"
-   +"Ressecamento vaginal: "+d.ressecamento+"\n"
-   +"Humor/sono: "+d.humor_sono+"\n"
-   +"Perda de urina: "+d.incontinencia+"\n"
-   +"Peso pélvico: "+d.peso_pelvico+"\n"
-   +"Frouxidão: "+d.frouxidao+"\n"
-   +"Estética íntima: "+d.estetica_intima+"\n"
-   +"Queixas estéticas: "+d.queixas_esteticas+"\n"
-   +"Motivo da consulta: "+d.motivo_consulta+"\n"
-   +"Observações: "+d.observacao+"\n\n"
-   +"Responda SOMENTE em JSON puro (sem markdown), neste formato:\n"
-   +'{"resumo":"3-4 linhas com perfil clínico completo","alertas":"alerta1; alerta2; alerta3",'
-   +'"procedimentos":[{"nome":"Nome","prioridade":"Alta|Média|Baixa","justificativa":"Motivo"}]}';
-
-  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="
-    + encodeURIComponent(GEMINI_KEY.trim());
-
-  var res = await fetch(url, {
-    method:"POST", mode:"cors",
-    headers:{"Content-Type":"application/json"},
-    
-    body: JSON.stringify({
-  contents:[{role:"user", parts:[{text:prompt}]}],
-  generationConfig:{temperature:0.2, maxOutputTokens:1200, responseMimeType:"application/json"},
-  safetySettings: [
-    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-  ]
-    })
-  });
-
-  var data = await res.json();
-  if(data.error) throw new Error(data.error.message||"Erro Gemini");
-  var texto = data.candidates[0].content.parts[0].text;
-  var parsed;
-  try{ parsed = JSON.parse(texto); }
-  catch(e){
-    var m = texto.match(/\{[\s\S]*\}/);
-    parsed = m ? JSON.parse(m[0]) : {};
-  }
-  return {
-    resumo:   parsed.resumo || "",
-    alertas:  parsed.alertas || "",
-    procedimentos: typeof parsed.procedimentos === "string"
-      ? parsed.procedimentos : JSON.stringify(parsed.procedimentos||[])
-  };
-}
-
-// ── GOOGLE APPS SCRIPT → PLANILHA ─────────────────────────
-async function gravarNaPlanilha(valores){
-  if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("COLE") > -1){
-    console.warn("URL do Apps Script não configurada.");
-    return;
-  }
-  // O Apps Script aceita POST com JSON e anexa a linha na planilha
-  var res = await fetch(APPS_SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors", // Apps Script não retorna CORS header, mas grava normalmente
-    headers: {"Content-Type":"text/plain"}, // no-cors só aceita text/plain
-    body: JSON.stringify({ valores: valores })
-  });
-  // no-cors não retorna resposta legível, mas a gravação ocorre
 }
 
 // ── HELPERS ────────────────────────────────────────────────
