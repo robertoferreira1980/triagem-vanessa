@@ -311,7 +311,7 @@ async function submitAll(){
 
   // 1. Análise com Gemini
   var ia = { resumo:"", alertas:"", procedimentos:"" };
-  if(GEMINI_KEY && GEMINI_KEY.indexOf("COLE") === -1){
+  if(GEMINI_KEY && GEMINI_KEY.indexOf("AIzaSyA6x9umo9WoYz5PvWwKiLm9N0IBCRTTeXw") === -1){
     try{
       setLoad("Gerando análise clínica com IA...", "Quase pronto!");
       ia = await chamarGemini(dados);
