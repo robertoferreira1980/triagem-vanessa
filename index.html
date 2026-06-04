@@ -118,9 +118,6 @@ body{background:var(--white);font-family:'Montserrat',sans-serif;color:var(--dar
 var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNYQ25rS2JjS8H8gVCIsxAT0G17eQ1o_vC4hV79XmdgLm08MHuDm5nneXeBFSnbNud/exec";
 // ╚══════════════════════════════════════════════════════════╝
 
-// NOTA DE SEGURANÇA: As variáveis GEMINI_KEY e chaves diretas foram totalmente
-// removidas do frontend para evitar clonagem e bloqueios automáticos do Google por leak.
-
 var STEPS = [
   { id:"perfil", title:"Seu Perfil", icon:"👤", questions:[
     { id:"idade", label:"Qual é a sua faixa etária?", type:"single",
@@ -155,7 +152,7 @@ var STEPS = [
   { id:"pelvico", title:"Assoalho Pélvico & Estética", icon:"✨", questions:[
     { id:"incontinencia", label:"Você tem perda involuntária de urina (ao tossir, espirrar, treinar)?", type:"single",
       options:["Não","Raramente, gotejamento mínimo","Às vezes, perda moderada","Com frequência, perda significativa"] },
-   { id:"peso_pelvico", label:"Sente sensação de peso ou pressão no 'pé da barriga' (pelve)?", type:"single",
+    { id:"peso_pelvico", label:"Sente sensação de peso ou pressão no 'pé da barriga' (pelve)?", type:"single",
       options:["Nunca senti","Às vezes, leve","Frequente ou incomoda bastante"] },
     { id:"frouxidao", label:"Sente frouxidão vaginal ou entrada de ar durante a relação sexual?", type:"single",
       options:["Não sinto nenhuma alteração","Sinto um pouco","Sinto muita frouxidão"] },
@@ -276,15 +273,12 @@ async function submitAll(){
   showView("loading");
   setLoad("Enviando triagem e gerando análise com IA...", "Aguarde alguns segundos");
 
-  // Monta objeto com todas as respostas estruturadas em chaves nativas
   var dados = { nome_paciente: nome };
   ALL_Q.forEach(function(item){
     var v = answers[item.q.id];
     dados[item.q.id] = Array.isArray(v) ? v.join(", ") : (v || "");
   });
 
-  // Envia os dados crus diretamente para o Apps Script
-  // O processamento do Gemini agora ocorre no backend seguro do Google
   try{
     if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("COLE") > -1){
       console.warn("URL do Apps Script não configurada.");
@@ -294,7 +288,7 @@ async function submitAll(){
 
     await fetch(APPS_SCRIPT_URL, {
       method: "POST",
-      mode: "no-cors", // Mantido conforme arquitetura original para evitar bloqueios cross-origin
+      mode: "no-cors",
       headers: {"Content-Type":"text/plain"},
       body: JSON.stringify(dados)
     });
@@ -305,7 +299,6 @@ async function submitAll(){
   showView("success");
 }
 
-// ── HELPERS ────────────────────────────────────────────────
 function showView(v){
   ["welcome","quiz","loading","success"].forEach(function(id){
     var el = document.getElementById("view-"+id);
